@@ -1,5 +1,5 @@
 diff --git a/libretro/libretro.c b/libretro/libretro.c
-index 1f8b3c2b46a79372860c928a47a840b18cc60710..9e849f174c05e78c7808a63ad151db64ab4c3b87 100644
+index 1f8b3c2..af0f34d 100644
 --- a/libretro/libretro.c
 +++ b/libretro/libretro.c
 @@ -1007,6 +1007,45 @@ void retro_init (void)
@@ -52,20 +52,23 @@ index 1f8b3c2b46a79372860c928a47a840b18cc60710..9e849f174c05e78c7808a63ad151db64
  	turbo_counter     = 0;
  
  	update_av_info = false;
-+	
++
 +	free_deferred_data();
  }
  
  ///////////////////////////////////////////////////////////
-@@ -1045,6 +1086,8 @@ void retro_reset (void)
+@@ -1045,8 +1086,10 @@ void retro_reset (void)
  
  void retro_run (void)
  {
 +	if (frames<defer_frames) update_deferred();
-+	
++
  	size_t audio_samples_per_frame;
- 	
+-	
++
  	// Check for core options updates
+ 	bool options_updated = false;
+ 	if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE, &options_updated) && options_updated)
 @@ -1223,6 +1266,11 @@ bool retro_serialize(void *data, size_t size)
  
  bool retro_unserialize(const void *data, size_t size)
@@ -78,16 +81,3 @@ index 1f8b3c2b46a79372860c928a47a840b18cc60710..9e849f174c05e78c7808a63ad151db64
  	if (PokeMini_LoadSSStream((uint8_t*)data, size)) {
  		if (log_cb) log_cb(RETRO_LOG_INFO, "Save state loaded successfully.\n");
  	} else {
-diff --git a/source/PokeMini.c b/source/PokeMini.c
-index 06140261ba4d4c36e9605ecfee471bcfddba5f25..9b6f6912185cc1017c129c1d5953688fe5e0019a 100644
---- a/source/PokeMini.c
-+++ b/source/PokeMini.c
-@@ -489,7 +489,7 @@ int PokeMini_LoadSSStream(uint8_t *buffer, uint64_t size)
- 				memstream_set_buffer(NULL, 0);
- 				return 0;
- 			}
--		} else if (!strcmp(PMiniStr, "LCD-")) {		// Audio
-+		} else if (!strcmp(PMiniStr, "AUD-")) {		// Audio
- 			if (!MinxAudio_LoadStateStream(stream, BSize)) {
- 				memstream_close(stream);
- 				memstream_set_buffer(NULL, 0);
