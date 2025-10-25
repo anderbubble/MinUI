@@ -1,0 +1,120 @@
+# MinUI Project Context
+
+## Project Overview
+MinUI is a focused, custom launcher and libretro frontend for retro gaming handhelds. It provides a simple, no-frills interface for playing retro games across multiple devices from different manufacturers.
+
+## Key Features
+- Simple launcher with minimal configuration
+- Libretro frontend (minarch) with custom cores
+- Cross-device compatibility (single SD card works on multiple devices)
+- Auto-sleep, auto-resume, and power management
+- Save state support with quick resume
+- Consistent in-emulator menu system
+
+## Project Structure
+
+### Build System
+- `makefile` - Main build orchestration (runs on host system, not in Docker)
+- `makefile.toolchain` - Toolchain and Docker build configuration
+- `commits.sh` - Generates commit history for releases
+- `workspace/makefile` - Platform-specific builds
+
+### Platform Support
+The project supports multiple retro handheld devices via platform-specific folders in `workspace/`:
+- `miyoomini/` - Miyoo Mini family (Mini, Mini Plus, Mini Flip)
+- `trimuismart/` - Trimui Smart devices
+- `rg35xx/`, `rg35xxplus/` - Anbernic RG35xx series
+- `my355/`, `my282/` - Miyoo A30, Flip devices
+- `tg5040/` - Trimui Smart Pro
+- `rgb30/` - Powkiddy RGB30
+- `m17/` - M17 device
+- `gkdpixel/` - GKD Pixel
+- `zero28/` - MagicX Mini Zero 28
+- `magicmini/` - MagicX XU Mini M
+- `macos/` - Development/testing on macOS
+
+### Core Components (workspace/all/)
+- `minui/` - Main launcher UI
+- `minarch/` - Libretro frontend (custom RetroArch-like implementation)
+- `syncsettings/` - Sync brightness/volume settings
+- `clock/` - Clock tool
+- `minput/` - Input configuration tool
+- `say/` - Text-to-speech utility
+- `common/` - Shared code (api.c, scaler.c, utils.c)
+
+### Platform-Specific Components
+Each platform folder typically contains:
+- `platform/` - Platform-specific code (display, input, power management)
+- `libmsettings/` - Settings management library
+- `keymon/` - Key monitoring daemon
+- `init/` - Initialization code
+- `show/` - Show/display utilities
+- `cores/` - Platform-specific libretro cores
+
+### Distribution Structure (skeleton/)
+- `BASE/` - Base installation files (README, boot scripts, MinUI.zip payload)
+- `BOOT/` - Boot-time files organized by device family (miyoo, trimui, magicx)
+- `EXTRAS/` - Optional emulators and tools
+  - `Emus/[platform]/[TAG].pak/` - Emulator paks (e.g., MGBA.pak, P8.pak)
+  - `Tools/[platform]/` - Tool paks (Clock, Input)
+- `SYSTEM/[platform]/` - Platform-specific system files (hidden on device)
+
+## Supported Consoles
+
+### Base Support
+- Game Boy, Game Boy Color, Game Boy Advance
+- NES, SNES, Sega Genesis, PlayStation
+
+### Extras
+- Neo Geo Pocket (Color), Sega Game Gear, Sega Master System
+- Pico-8, Pokémon mini, Super Game Boy
+- TurboGrafx-16 (CD), Virtual Boy
+
+## Key Technologies
+- C programming language
+- Libretro API for emulation cores
+- SDL (Simple DirectMedia Layer) for some platforms
+- Platform-specific framebuffer and input APIs
+- Docker for cross-compilation toolchains
+
+## PAK System
+MinUI uses a "pak" system for emulators and tools:
+- A pak is a folder with `.pak` extension containing a `launch.sh` script
+- Emulator paks live in `Emus/[platform]/[TAG].pak/`
+- Tool paks live in `Tools/[platform]/`
+- Paks are platform-specific
+- See PAKS.md for detailed documentation on creating paks
+
+## Build Process
+1. `make setup` - Prepares build directory from skeleton
+2. `make [platform]` - Builds platform-specific binaries
+3. `make system` - Copies system files to build directory
+4. `make cores` - Copies libretro cores
+5. `make special` - Sets up device-family-specific boot structures
+6. `make package` - Creates release ZIP files
+
+## Important Files
+- `README.md` - User-facing documentation
+- `PAKS.md` - Developer guide for creating emulator/tool paks
+- `skeleton/BASE/README.txt` - Installation instructions
+- `skeleton/EXTRAS/README.txt` - Extras installation guide
+- `workspace/hash.txt` - Git commit hash for current build
+
+## Development Notes
+- All platforms deprecated as of 2025 (see README device table)
+- Build system runs on host, not in Docker (prevents docker-in-docker)
+- Uses device-specific toolchains via makefile.toolchain
+- Supports HDMI output on some devices via `DEVICE` environment variable
+- Platform identification via internal names (e.g., tg5040 for Trimui Smart Pro)
+
+## Common Patterns
+- Platform code uses framebuffer manipulation for display
+- Input handled via device-specific event systems
+- Power management includes auto-sleep (30s) and auto-poweroff (2min)
+- Save states managed automatically with resume support
+- Global brightness/volume synced via syncsettings.elf
+
+## Testing
+- macOS workspace available for development testing
+- Each platform requires real hardware for final testing
+- SD card compatibility testing across multiple devices
